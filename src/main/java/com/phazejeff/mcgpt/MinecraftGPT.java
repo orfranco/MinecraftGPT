@@ -1,5 +1,6 @@
 package com.phazejeff.mcgpt;
 
+import com.google.gson.JsonParser;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
@@ -83,7 +84,6 @@ public class MinecraftGPT implements ModInitializer {
 					
 					ServerCommandSource source = context.getSource();
 					String prompt = StringArgumentType.getString(context, "prompt");
-
 					source.sendMessage(Text.of("Building " + prompt + "..."));
 
 					new Thread(() -> {
@@ -91,7 +91,89 @@ public class MinecraftGPT implements ModInitializer {
 						messages.add("Build " + prompt);
 
 						BlockPos blockPos = Build.getTargettedBlock(source);
-						JsonObject build = OpenAI.promptBuild(prompt); // TODO put this in a seperate thread so it doesn't freeze mc
+						JsonObject build = OpenAI.promptBuild(prompt);
+//						String test = """
+//						{
+//					  "blocks": [
+//						{
+//						//walls:
+//						  "type": "minecraft:oak_planks",
+//						  "startX": 0,
+//						  "startY": 0,
+//						  "startZ": 0,
+//						  "endX": 10,
+//						  "endY": 6,
+//						  "endZ": 0,
+//						  "fill": true
+//						},
+//						{
+//						  "type": "minecraft:oak_planks",
+//						  "startX": 0,
+//						  "startY": 0,
+//						  "startZ": 10,
+//						  "endX": 10,
+//						  "endY": 6,
+//						  "endZ": 10,
+//						  "fill": true
+//						},
+//						{
+//						  "type": "minecraft:oak_planks",
+//						  "startX": 0,
+//						  "startY": 0,
+//						  "startZ": 0,
+//						  "endX": 0,
+//						  "endY": 6,
+//						  "endZ": 10,
+//						  "fill": true
+//						},
+//						{
+//						  "type": "minecraft:oak_planks",
+//						  "startX": 10,
+//						  "startY": 0,
+//						  "startZ": 0,
+//						  "endX": 10,
+//						  "endY": 6,
+//						  "endZ": 10,
+//						  "fill": true
+//						},
+//
+//						// roof:
+//						{
+//						  "type": "minecraft:brick_slab",
+//						  "startX": 0,
+//						  "startY": 6,
+//						  "startZ": 0,
+//						  "endX": 10,
+//						  "endY": 6,
+//						  "endZ": 10,
+//						  "fill": true
+//						},
+//
+//						// door:
+//						{
+//						  "type": "minecraft:air",
+//						  "startX": 5,
+//						  "startY": 1,
+//						  "startZ": 0,
+//						  "endX": 5,
+//						  "endY": 2,
+//						  "endZ": 0,
+//						  "fill": true
+//						},
+//						{
+//						  "type": "minecraft:oak_door",
+//						  "startX": 5,
+//						  "startY": 1,
+//						  "startZ": 0,
+//						  "endX": 5,
+//						  "endY": 2,
+//						  "endZ": 0,
+//						  "fill": true
+//						}
+//
+//					  ]
+//						}""";
+//						JsonObject build = JsonParser.parseString(test).getAsJsonObject();
 						messages.add(build.toString());
 
 						ServerWorld world = source.getWorld();
@@ -181,5 +263,18 @@ public class MinecraftGPT implements ModInitializer {
 			)
 		));
 
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
+				literal("try")
+				.requires(source -> source.isExecutedByPlayer() )
+				.then(argument("prompt", StringArgumentType.greedyString())
+				.executes(context -> {
+				ServerCommandSource source = context.getSource();
+				BlockPos blockPos = Build.getTargettedBlock(source);
+				ServerWorld world = source.getWorld();
+				Build.buildHouse(world, blockPos);
+				return 1;
+		})
+		)
+		));
 	}
 }
