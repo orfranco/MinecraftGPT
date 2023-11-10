@@ -1,0 +1,48 @@
+{
+  "blocks": [
+    // Bottom Layer of the Hull
+    {"type": "minecraft:oak_planks", "x1": -5, "y1": 0, "z1": 0, "x2": 5, "y2": 0, "z2": 0, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -4, "y1": 0, "z1": -1, "x2": 4, "y2": 0, "z2": 1, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -3, "y1": 0, "z1": -2, "x2": 3, "y2": 0, "z2": 2, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -2, "y1": 0, "z1": -3, "x2": 2, "y2": 0, "z2": 3, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -1, "y1": 0, "z1": -4, "x2": 1, "y2": 0, "z2": 4, "fill": true},
+
+    // Second Layer of the Hull (building up and tapering in)
+    {"type": "minecraft:oak_planks", "x1": -4, "y1": 1, "z1": 0, "x2": 4, "y2": 1, "z2": 0, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -3, "y1": 1, "z1": -1, "x2": 3, "y2": 1, "z2": 1, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -2, "y1": 1, "z1": -2, "x2": 2, "y2": 1, "z2": 2, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -1, "y1": 1, "z1": -3, "x2": 1, "y2": 1, "z2": 3, "fill": true},
+
+    // Assuming continuation with third layer of the hull
+    {"type": "minecraft:oak_planks", "x1": -3, "y1": 2, "z1": 0, "x2": 3, "y2": 2, "z2": 0, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -2, "y1": 2, "z1": -1, "x2": 2, "y2": 2, "z2": 1, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -1, "y1": 2, "z1": -2, "x2": 1, "y2": 2, "z2": 2, "fill": true},
+
+    // Fourth Layer of the Hull
+    {"type": "minecraft:oak_planks", "x1": -2, "y1": 3, "z1": 0, "x2": 2, "y2": 3, "z2": 0, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -1, "y1": 3, "z1": -1, "x2": 1, "y2": 3, "z2": 1, "fill": true},
+
+    // Fifth Layer of the Hull
+    {"type": "minecraft:oak_planks", "x1": -1, "y1": 4, "z1": 0, "x2": 1, "y2": 4, "z2": 0, "fill": true},
+
+    // Top Edge of the Hull (final layer before the deck begins)
+    {"type": "minecraft:oak_planks", "x1": 0, "y1": 5, "z1": 0, "x2": 0, "y2": 5, "z2": 0, "fill": true},
+
+    // Deck of the Ship
+    {"type": "minecraft:oak_planks", "x1": -5, "y1": 5, "z1": -1, "x2": 5, "y2": 5, "z2": 1, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -4, "y1": 5, "z1": -2, "x2": 4, "y2": 5, "z2": 2, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -3, "y1": 5, "z1": -3, "x2": 3, "y2": 5, "z2": 3, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -2, "y1": 5, "z1": -4, "x2": 2, "y2": 5, "z2": 4, "fill": true},
+    {"type": "minecraft:oak_planks", "x1": -1, "y1": 5, "z1": -5, "x2": 1, "y2": 5, "z2": 5, "fill": true},
+
+    // Masts
+    {"type": "minecraft:spruce_log", "x1": 0, "y1": 6, "z1": 0, "x2": 0, "y2": 20, "z2": 0, "fill": true},
+
+
+    // Captain's Cabin
+    {"type": "minecraft:dark_oak_planks", "x1": 3, "y1": 6, "z1": 0, "x2": 5, "y2": 8, "z2": 0, "fill": true},
+
+    // Crow's Nest
+    {"type": "minecraft:spruce_planks", "x1": -1, "y1": 21, "z1": -1, "x2": 1, "y2": 21, "z2": 1, "fill": true}
+  ]
+}

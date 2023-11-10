@@ -17,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 
 import static net.minecraft.server.command.CommandManager.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,15 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.StringArgumentType;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import javax.tools.*;
+import java.io.File;
+import java.util.Collections;
+import java.lang.reflect.Method;
+
+
 public class MinecraftGPT implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.
@@ -33,6 +43,8 @@ public class MinecraftGPT implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("minecraftgpt");
 
 	public static final Item BUILD_ITEM = new BuildItem(new FabricItemSettings());
+
+	public static final String EXTERNAL_JSON_FILE_PATH = "C:\\Users\\t-orfranco\\Desktop\\Own Projects\\MinecraftGPT\\src\\main\\java\\com\\phazejeff\\mcgpt\\external.json";
 
 	public static String openai_key;
 	public static boolean gpt4 = false;
@@ -92,88 +104,6 @@ public class MinecraftGPT implements ModInitializer {
 
 						BlockPos blockPos = Build.getTargettedBlock(source);
 						JsonObject build = OpenAI.promptBuild(prompt);
-//						String test = """
-//						{
-//					  "blocks": [
-//						{
-//						//walls:
-//						  "type": "minecraft:oak_planks",
-//						  "startX": 0,
-//						  "startY": 0,
-//						  "startZ": 0,
-//						  "endX": 10,
-//						  "endY": 6,
-//						  "endZ": 0,
-//						  "fill": true
-//						},
-//						{
-//						  "type": "minecraft:oak_planks",
-//						  "startX": 0,
-//						  "startY": 0,
-//						  "startZ": 10,
-//						  "endX": 10,
-//						  "endY": 6,
-//						  "endZ": 10,
-//						  "fill": true
-//						},
-//						{
-//						  "type": "minecraft:oak_planks",
-//						  "startX": 0,
-//						  "startY": 0,
-//						  "startZ": 0,
-//						  "endX": 0,
-//						  "endY": 6,
-//						  "endZ": 10,
-//						  "fill": true
-//						},
-//						{
-//						  "type": "minecraft:oak_planks",
-//						  "startX": 10,
-//						  "startY": 0,
-//						  "startZ": 0,
-//						  "endX": 10,
-//						  "endY": 6,
-//						  "endZ": 10,
-//						  "fill": true
-//						},
-//
-//						// roof:
-//						{
-//						  "type": "minecraft:brick_slab",
-//						  "startX": 0,
-//						  "startY": 6,
-//						  "startZ": 0,
-//						  "endX": 10,
-//						  "endY": 6,
-//						  "endZ": 10,
-//						  "fill": true
-//						},
-//
-//						// door:
-//						{
-//						  "type": "minecraft:air",
-//						  "startX": 5,
-//						  "startY": 1,
-//						  "startZ": 0,
-//						  "endX": 5,
-//						  "endY": 2,
-//						  "endZ": 0,
-//						  "fill": true
-//						},
-//						{
-//						  "type": "minecraft:oak_door",
-//						  "startX": 5,
-//						  "startY": 1,
-//						  "startZ": 0,
-//						  "endX": 5,
-//						  "endY": 2,
-//						  "endZ": 0,
-//						  "fill": true
-//						}
-//
-//					  ]
-//						}""";
-//						JsonObject build = JsonParser.parseString(test).getAsJsonObject();
 						messages.add(build.toString());
 
 						ServerWorld world = source.getWorld();
@@ -264,17 +194,116 @@ public class MinecraftGPT implements ModInitializer {
 		));
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
+				literal("external")
+				.requires(source -> source.isExecutedByPlayer() )
+				.then(argument("prompt", StringArgumentType.greedyString())
+					.executes(context -> {
+						try {
+							Long startTime = System.currentTimeMillis();
+
+							ServerCommandSource source = context.getSource();
+							String prompt = StringArgumentType.getString(context, "prompt");
+							source.sendMessage(Text.of("Building " + prompt + "..."));
+
+
+							List<String> messages = new ArrayList<String>();
+							messages.add("Build " + prompt);
+
+							String externalFileContent = new String(Files.readAllBytes(Paths.get(EXTERNAL_JSON_FILE_PATH)));
+							JsonObject externalFileJson = JsonParser.parseString(externalFileContent).getAsJsonObject();
+
+							BlockPos blockPos = Build.getTargettedBlock(source);
+							ServerWorld world = source.getWorld();
+
+							Build.build(externalFileJson, blockPos.getX(), blockPos.getY(), blockPos.getZ(), world);
+
+
+							BuildItem buildItem = Build.makeBuildItem(messages, blockPos);
+							ItemStack itemStack = buildItem.getItemStack(messages, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+
+							itemStack.setCustomName(Text.of(prompt));
+
+							source.getPlayer().giveItemStack(itemStack);
+							long endTime = System.currentTimeMillis();
+							source.sendMessage(Text.of("Done in " + (float) ((endTime - startTime) / 1000.0f) + " seconds"));
+						} catch (Exception e) {
+							e.printStackTrace();
+							context.getSource().sendMessage(Text.of(e.toString()));
+						}
+
+						return 1;
+								})
+						)
+		));
+
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
 				literal("try")
 				.requires(source -> source.isExecutedByPlayer() )
 				.then(argument("prompt", StringArgumentType.greedyString())
 				.executes(context -> {
-				ServerCommandSource source = context.getSource();
-				BlockPos blockPos = Build.getTargettedBlock(source);
-				ServerWorld world = source.getWorld();
-				Build.buildHouse(world, blockPos);
-				return 1;
+					ServerCommandSource source = context.getSource();
+					BlockPos blockPos = Build.getTargettedBlock(source);
+					ServerWorld world = source.getWorld();
+					Build.buildStructure(world, blockPos);
+					return 1;
 		})
 		)
 		));
+
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
+				literal("compile")
+				.requires(source -> source.isExecutedByPlayer() )
+				.then(argument("prompt", StringArgumentType.greedyString())
+				.executes(context -> {
+
+					ServerCommandSource source = context.getSource();
+					BlockPos blockPos = Build.getTargettedBlock(source);
+					ServerWorld world = source.getWorld();
+					String prompt = StringArgumentType.getString(context, "prompt");
+
+
+					String filePath = "C:\\Users\\t-orfranco\\Desktop\\Own Projects\\MinecraftGPT\\src\\main\\java\\com\\phazejeff\\mcgpt\\gptBuilders\\"+prompt+".java";
+					String outputDir = "C:\\Users\\t-orfranco\\Desktop\\Own Projects\\MinecraftGPT\\build\\classes\\java\\main";
+					JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+					try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null)) {
+						// Configure the file manager to use the desired output directory
+						fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singletonList(new File(outputDir)));
+
+						// Get a compilation unit (file) from the file manager
+						Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(Collections.singletonList(filePath));
+
+						// Perform the compilation
+						JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, null, null, compilationUnits);
+						boolean result = task.call();
+
+						if (result) {
+							System.out.println("Compilation successful.");
+						} else {
+							System.out.println("Compilation failed.");
+							return 1;
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+
+					try {
+						// Load the compiled class
+						ClassLoader classLoader = ServerWorld.class.getClassLoader();
+						Class<?> clazz = classLoader.loadClass("com.phazejeff.mcgpt.gptBuilders." + prompt);
+
+						// Get the method to be invoked
+						Method method = clazz.getMethod("buildStructure", ServerWorld.class, BlockPos.class);
+
+						// Invoke the method with null arguments (or provide actual arguments)
+						method.invoke(null, world, blockPos);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					return 1;
+				})
+			)
+		));
+
 	}
 }
